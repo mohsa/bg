@@ -9,7 +9,7 @@ from random import shuffle
 import tensorflow as tf
 
 #==================================================================
-output_folder = '../output'
+output_folder = 'output'
 train_samples_path = os.path.join(output_folder, 'sampt')
 val_samples_path = os.path.join(output_folder, 'sampv')
 output_path = os.path.join(output_folder, 'output.json')
@@ -21,13 +21,13 @@ model_path = os.path.join('latest_model', 'DeepHomographyModel')
 
 
 
-image_folder = '../Data/Images/frames_360p'
+image_folder = 'Data/Images/frames_360p'
 max_data_size = 2000  # total samples are equal to max_dataset_size*images
 
 im2patch = .8
 image_height, image_width = 360, 640
 patch_height, patch_width = int(image_height * im2patch), int(image_width * im2patch)
-validation_start = int(max_data_size * .8)
+validation_start = int(max_data_size * .999)
 image_shape =(patch_height, patch_width)
 
 max_dis = 12
