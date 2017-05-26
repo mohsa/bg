@@ -22,12 +22,12 @@ model_path = os.path.join('latest_model', 'DeepHomographyModel')
 
 
 image_folder = 'Data/Images/frames_360p'
-max_data_size = 2000  # total samples are equal to max_dataset_size*images
+max_data_size = 20000  # total samples are equal to max_dataset_size*images
 
 im2patch = .8
 image_height, image_width = 360, 640
 patch_height, patch_width = int(image_height * im2patch), int(image_width * im2patch)
-validation_start = int(max_data_size * .999)
+validation_start = int(max_data_size * .8)
 image_shape =(patch_height, patch_width)
 
 max_dis = 12
@@ -49,12 +49,12 @@ ch = 2  # represent two gray scaled images for homography calculation
 def generate_samples():
     print('1')
     max_dsize_loop = int(max_data_size / len(os.listdir(image_folder))) + 1
-    print('loop size:==========', max_dsize_loop)
+    #print('loop size:==========', max_dsize_loop)
 
     samples = []
     i = 0
     max_dis = 12
-
+    random_list = []
     while i < max_dsize_loop:
 
         for filename in os.listdir(image_folder):
@@ -84,7 +84,11 @@ def generate_samples():
             y_4_offset = (np.random.randint(-max_dis, max_dis))
             x_4_offset = (np.random.randint(-max_dis, max_dis))
             oset = [y_1_offset, x_1_offset, y_2_offset, x_2_offset, y_3_offset, x_3_offset, y_4_offset, x_4_offset]
-            samples.append((filename, oset, coord))
+            if not [y_1_offset, x_1_offset, y_2_offset, x_2_offset, y_3_offset, x_3_offset, y_4_offset,
+                x_4_offset] in random_list:
+                random_list.append(oset)
+                samples.append((filename, oset, coord))
+            
         i += 1
 
     shuffle(samples)
@@ -182,8 +186,8 @@ def get_data(samples):
         X.append(im2d)
         Y.append(h_4pt)
         coordinates.append(coord)
-        p1.append(img_patch)
-        p2.append(img_patch)
+        #p1.append(img_patch)
+        #p2.append(img_patch)
 
 
     X = np.array(X, np.float32)
@@ -298,7 +302,9 @@ def train_net():
     for i in range(num_samples_dis):
         val_samp_dis.append(samples_val[np.random.randint(0, len(samples_val))])
         train_samp_dis .append(samples_train[np.random.randint(0, len(samples_train))])
-
+        
+    Xt, _, Ct = get_data(train_samp_dis)   
+    Xv, _, Cv = get_data(val_sample_dis)
     X_val, Y_val, _ = get_data(samples_val)
 
     model = DeepHomographyModel()
@@ -338,7 +344,7 @@ def train_net():
         print('mae:',train_loss)
         print('mse:', train_mse)
 
-        if ep % 20 == 0:
+        if ep % 25 == 0:
             saver.save(sess, os.getcwd(), global_step=ep)
 
         train_loss_summary = tf.Summary()
@@ -349,14 +355,12 @@ def train_net():
         train_loss_summary.value.add(tag="Mean_squared_error", simple_value=train_mse)
         train_writer.add_summary(train_loss_summary, ep)
 
-        # Show results for some randomly selected samples from validation set
-        Xv, _, Cv = get_data(samples_val)
+        # Show results for some randomly selected samples from validation and training set        
 
         val_image_summary = sess.run(model.imagev_summary_op,
                                        feed_dict={model.x: Xv, model.original_corners: Cv, model.keep_prob: 1.0})
         val_writer.add_summary(val_image_summary, ep)
-
-        Xt, _, Ct = get_data(samples_train)
+        
         #
         train_image_summary = sess.run(model.imaget_summary_op,
                                        feed_dict={model.x: Xt, model.original_corners: Ct, model.keep_prob: 1.0})
