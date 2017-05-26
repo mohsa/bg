@@ -304,7 +304,7 @@ def train_net():
         train_samp_dis .append(samples_train[np.random.randint(0, len(samples_train))])
         
     Xt, _, Ct = get_data(train_samp_dis)   
-    Xv, _, Cv = get_data(val_sample_dis)
+    Xv, _, Cv = get_data(val_samp_dis)
     X_val, Y_val, _ = get_data(samples_val)
 
     model = DeepHomographyModel()
