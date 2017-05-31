@@ -24,15 +24,18 @@ model_path = os.path.join('latest_model', 'DeepHomographyModel')
 image_folder = '../Data/Images/frames_360p'
 max_data_size = 80000  # total samples are equal to max_dataset_size*images
 
-im2patch = .8
+im2patch = .75
 image_height, image_width = 360, 640
+image_height, image_width = int(image_height/2), int(image_width/2)
 patch_height, patch_width = int(image_height * im2patch), int(image_width * im2patch)
 validation_start = int(max_data_size * .9)
 image_shape =(patch_height, patch_width)
 
-max_dis = 12
+max_dis_x = 6
+max_dis_y = 18
+
 batch_size = 8
-nb_epoch = 30
+nb_epoch = 60
 
 learning_rate = 0.00001
 training_dropout = 1.0
@@ -75,14 +78,14 @@ def generate_samples():
 
             coord = [y_1, x_1, y_2, x_2, y_3, x_3, y_4, x_4]
 
-            y_1_offset = (np.random.randint(-max_dis, max_dis))  # (-24, 24)
+            y_1_offset = (np.random.randint(-max_dis_y, max_dis_y))
             x_1_offset = (np.random.randint(-max_dis, max_dis))
-            y_2_offset = (np.random.randint(-max_dis, max_dis))
+            y_2_offset = (np.random.randint(-max_dis_y, max_dis_y))
             x_2_offset = (np.random.randint(-max_dis, max_dis))
 
-            y_3_offset = (np.random.randint(-max_dis, max_dis))
+            y_3_offset = (np.random.randint(-max_dis_y, max_dis_y))
             x_3_offset = (np.random.randint(-max_dis, max_dis))
-            y_4_offset = (np.random.randint(-max_dis, max_dis))
+            y_4_offset = (np.random.randint(-max_dis_y, max_dis_y))
             x_4_offset = (np.random.randint(-max_dis, max_dis))
             oset = [y_1_offset, x_1_offset, y_2_offset, x_2_offset, y_3_offset, x_3_offset, y_4_offset, x_4_offset]
 
