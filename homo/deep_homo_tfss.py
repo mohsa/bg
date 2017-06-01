@@ -22,7 +22,7 @@ model_path = os.path.join('latest_model', 'DeepHomographyModel')
 
 
 image_folder = '../Data/Images/frames_360p'
-max_data_size = 80000  # total samples are equal to max_dataset_size*images
+max_data_size = 40000  # total samples are equal to max_dataset_size*images
 
 im2patch = .75
 image_height, image_width = 360, 640
@@ -32,10 +32,10 @@ validation_start = int(max_data_size * .9)
 image_shape =(patch_height, patch_width)
 
 max_dis_x = 6
-max_dis_y = 18
+max_dis_y = 16
 
 batch_size = 8
-nb_epoch = 60
+nb_epoch = 70
 
 learning_rate = 0.00001
 training_dropout = 1.0
@@ -49,22 +49,32 @@ ch = 2  # represent two gray scaled images for homography calculation
 
 ##########################################################################################333
 
-def generate_samples():
+def generate_samples(tipe):
     #print('1')
-    max_dsize_loop = int(max_data_size / len(os.listdir(image_folder))) + 1
+    image_folder = 'train'
+    samples_path = os.path.join(output_folder, 'sampt')
+    max_data_size = 30000
+
+    if tipe == 'val':
+        image_folder = 'validation'
+        samples_path = os.path.join(output_folder, 'sampv')
+        max_data_size = int(max_data_size * .2)
+
+
+    max_dsize_loop = int((max_data_size) / len(os.listdir(image_folder))) + 1
     print('loop size:==========', max_dsize_loop)
 
     samples = []
     i = 0
-    max_dis = 12
+
     random_list = []
     # repeated = 0
     while i < max_dsize_loop:
 
         for filename in os.listdir(image_folder):
-            y_start = np.random.randint(30, 40)
+            y_start = 12#np.random.randint(14, 16)
             y_end = y_start + patch_height
-            x_start = np.random.randint(40, 70)
+            x_start = 20#np.random.randint(16, 17)
             x_end = x_start + patch_width
 
             y_1 = y_start
@@ -101,24 +111,30 @@ def generate_samples():
 
     # print('repeated:',repeated)
     shuffle(samples)
-    print('total samles:', len(samples))
-    samples_train = samples[:validation_start]
-    samples_val = samples[validation_start:]
+    print('total samles for'+ tipe + ':', len(samples))
+    # samples_train = samples[:validation_start]
+    # samples_val = samples[validation_start:]
 
-    print('Total training samples:',len(samples_train))
-    print('Total test samples:', len(samples_val))
+    # print('Total training samples:',len(samples_train))
+    # print('Total test samples:', len(samples_val))
 
-    with open(train_samples_path, 'w') as samp_train:
-        json.dump(samples_train, samp_train)
+    with open(samples_path, 'w') as sampp:
+        json.dump(samples, sampp)
 
-    with open(val_samples_path, 'w') as samp_val:
-        json.dump(samples_val, samp_val)
+    # with open(val_samples_path, 'w') as samp_val:
+    #     json.dump(samples_val, samp_val)
 
-    return samples_train, samples_val
+    return samples
 
 
-def get_data(samples):
+
+def get_data(samples, tipe):
     #random_list = []
+    image_folder = 'train'
+
+    if tipe == 'val':
+        image_folder = 'validation'
+        
     X = []
     Y = []
     p1 = []
@@ -282,7 +298,8 @@ class DeepHomographyModel():
 
 ###########################################################################################################3
 def train_net():
-    samples_train, samples_val = generate_samples()
+    samples_train = generate_samples('train')
+    samples_val = generate_samples('val')
     #
 
 
@@ -310,7 +327,7 @@ def train_net():
         mses = []
         for x in range(nb_batch):
             bt = samples_train[x * batch_size: x * batch_size + batch_size]
-            X_train, Y_train, _ = get_data(bt)
+            X_train, Y_train, _ = get_data(bt, 'train')
 
             _, loss, mse = sess.run([model.train_step, model.loss, model.mse],
                                     feed_dict={model.x: X_train, model.y_: Y_train,
@@ -344,7 +361,7 @@ def train_net():
         for y in range(val_nb_batch):
             bvt = samples_val[y * batch_size: y * batch_size + batch_size]
 
-            X_val, Y_val, _ = get_data(bvt)
+            X_val, Y_val, _ = get_data(bvt, 'val')
 
             val_pred, val_summary, val_loss, val_mse = sess.run([model.pred, model.merged_summary_op, model.loss, model.mse],
                  feed_dict={model.x: X_val, model.y_: Y_val, model.keep_prob: 1.0})
