@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 
 # ==================================================================
-output_folder = '../output'
+output_folder = 'output'
 train_samples_path = os.path.join(output_folder, 'sampt')
 val_samples_path = os.path.join(output_folder, 'sampv')
 output_path = os.path.join(output_folder, 'output.json')
@@ -50,12 +50,12 @@ ch = 2  # represent two gray scaled images for homography calculation
 
 def generate_samples(tipe):
     # print('1')
-    image_folder = 'train'
+    image_folder = 'homo/train'
     samples_path = os.path.join(output_folder, 'sampt')
     max_data_size = 5000
 
     if tipe == 'val':
-        image_folder = 'validation'
+        image_folder = 'homo/validation'
         samples_path = os.path.join(output_folder, 'sampv')
         max_data_size = int(max_data_size * .2)
 
@@ -127,10 +127,10 @@ def generate_samples(tipe):
 
 def get_data(samples, tipe):
     # random_list = []
-    image_folder = 'train'
+    image_folder = 'homo/train'
 
     if tipe == 'val':
-        image_folder = 'validation'
+        image_folder = 'homo/validation'
 
     X = []
     Y = []
@@ -189,12 +189,12 @@ def get_data(samples, tipe):
         img_perburb = cv2.warpPerspective(img, h, (image_width, image_height))
         img_perburb_patch = img_perburb[y_1:y_3, x_1:x_3]
         #
-        plt.figure()
-        plt.subplot(2,1,1)
-        plt.imshow(img_patch)
-        plt.subplot(2, 1, 2)
-        plt.imshow(img_perburb_patch)
-        plt.show()
+#         plt.figure()
+#         plt.subplot(2,1,1)
+#         plt.imshow(img_patch)
+#         plt.subplot(2, 1, 2)
+#         plt.imshow(img_perburb_patch)
+#         plt.show()
 
 
         # if not [y_1, x_1, y_2, x_2, y_3, x_3, y_4, x_4] in random_list:
