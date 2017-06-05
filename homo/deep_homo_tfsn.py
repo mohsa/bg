@@ -21,7 +21,7 @@ logdir = "tf_logs/deepnn-e100-bt8-{0}".format(now.strftime("%Y%m%d-%H%M%S"))
 model_path = os.path.join('latest_model', 'DeepHomographyModel')
 
 image_folder = '../Data/Images/frames_360p'
-max_data_size = 100  # total samples are equal to max_dataset_size*images
+max_data_size = 5000  # total samples are equal to max_dataset_size*images
 
 im2patch = .75
 image_height, image_width = 360, 640
@@ -52,7 +52,7 @@ def generate_samples(tipe):
     # print('1')
     image_folder = 'train'
     samples_path = os.path.join(output_folder, 'sampt')
-    max_data_size = 100
+    max_data_size = 5000
 
     if tipe == 'val':
         image_folder = 'validation'
@@ -248,29 +248,29 @@ class DeepHomographyModel():
 
         conv1 = tf.contrib.layers.conv2d(self.x, self.f, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv1')
         conv2 = tf.contrib.layers.conv2d(conv1, self.f, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv2')
-        pool1 = tf.contrib.layers.max_pool2d(conv2, kernel_size=[2, 2], stride=[2, 2], scope='Pool1')
+        #pool1 = tf.contrib.layers.max_pool2d(conv2, kernel_size=[2, 2], stride=[2, 2], scope='Pool1')
 
-        conv3 = tf.contrib.layers.conv2d(pool1, self.f * 2, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv3')
-        conv4 = tf.contrib.layers.conv2d(conv3, self.f * 2, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv4')
-        pool2 = tf.contrib.layers.max_pool2d(conv4, kernel_size=[2, 2], stride=[2, 2], scope='Pool2')
+        #conv3 = tf.contrib.layers.conv2d(pool1, self.f * 2, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv3')
+# #         conv4 = tf.contrib.layers.conv2d(conv3, self.f * 2, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv4')
+#         pool2 = tf.contrib.layers.max_pool2d(conv4, kernel_size=[2, 2], stride=[2, 2], scope='Pool2')
 
-        conv5 = tf.contrib.layers.conv2d(pool2, self.f * 4, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv5')
-        conv6 = tf.contrib.layers.conv2d(conv5, self.f * 4, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv6')
-        pool3 = tf.contrib.layers.max_pool2d(conv6, kernel_size=[2, 2], stride=[2, 2], scope='Pool3')
+#         conv5 = tf.contrib.layers.conv2d(pool2, self.f * 4, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv5')
+#         conv6 = tf.contrib.layers.conv2d(conv5, self.f * 4, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv6')
+#         pool3 = tf.contrib.layers.max_pool2d(conv6, kernel_size=[2, 2], stride=[2, 2], scope='Pool3')
 
-        conv7 = tf.contrib.layers.conv2d(pool3, self.f * 8, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv7')
-        conv8 = tf.contrib.layers.conv2d(conv7, self.f * 8, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv8')
+#         conv7 = tf.contrib.layers.conv2d(pool3, self.f * 8, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv7')
+#         conv8 = tf.contrib.layers.conv2d(conv7, self.f * 8, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv8')
 
-        flattened = tf.contrib.layers.flatten(conv8, scope='Flatten')
+        flattened = tf.contrib.layers.flatten(conv2, scope='Flatten')
 
-        fc1 = tf.contrib.layers.fully_connected(flattened, 200, activation_fn=tf.nn.relu, scope='FC1')
+        fc1 = tf.contrib.layers.fully_connected(flattened, 256, activation_fn=tf.nn.relu, scope='FC1')
         do1 = tf.nn.dropout(fc1, self.keep_prob)
         fc2 = tf.contrib.layers.fully_connected(do1, 256, activation_fn=tf.nn.relu, scope='FC2')
         do2 = tf.nn.dropout(fc2, self.keep_prob)
 
         with tf.name_scope('Output'):
             y_conv = tf.contrib.layers.fully_connected(do2, 8, activation_fn=None)
-            y_conv = tf.multiply(y_conv, 200, name='pred')
+            y_conv = tf.multiply(y_conv, 50, name='pred')
 
         self.loss = tf.losses.absolute_difference(y_conv, self.y_, scope='Loss')
         tf.summary.scalar('Mean absolute error', self.loss)
