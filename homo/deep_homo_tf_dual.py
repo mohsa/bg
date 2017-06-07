@@ -36,7 +36,7 @@ max_dis_y = 12
 batch_size = 16
 nb_epoch = 50
 
-learning_rate = .001
+learning_rate = .0001
 training_dropout = 1.0
 
 num_outliers = 4
@@ -51,7 +51,7 @@ def generate_samples(tipe):
     # print('1')
     image_folder = 'homo/train'
     samples_path = os.path.join(output_folder, 'sampt')
-    max_data_size = 1000
+    max_data_size = 50000
 
     if tipe == 'val':
         image_folder = 'homo/validation'
@@ -243,10 +243,18 @@ class DeepHomographyModel():
 
         conv1 = tf.contrib.layers.conv2d(x, self.f, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv1')
         conv2 = tf.contrib.layers.conv2d(conv1, self.f, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv2')
+        pool1 = tf.contrib.layers.max_pool2d(conv2, kernel_size=[2, 2], stride=[2, 2], scope='Pool1')
+        #
+        conv3 = tf.contrib.layers.conv2d(pool1, self.f * 2, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv3')
+        conv4 = tf.contrib.layers.conv2d(conv3, self.f * 2, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv4')
+        pool2 = tf.contrib.layers.max_pool2d(conv4, kernel_size=[2, 2], stride=[2, 2], scope='Pool2')
+        #
+        conv5 = tf.contrib.layers.conv2d(pool2, self.f * 4, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv5')
+        conv6 = tf.contrib.layers.conv2d(conv5, self.f * 4, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv6')
 
-        flattened = tf.contrib.layers.flatten(conv2, scope='Flatten')
+        flattened = tf.contrib.layers.flatten(conv5, scope='Flatten')
 
-        fc1 = tf.contrib.layers.fully_connected(flattened, 128, activation_fn=tf.nn.relu, scope='FC1')
+        fc1 = tf.contrib.layers.fully_connected(flattened, 256, activation_fn=tf.nn.relu, scope='FC1')
 
         return fc1
 
