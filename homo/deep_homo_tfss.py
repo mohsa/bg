@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 
 #==================================================================
-output_folder = '../output'
+output_folder = 'output'
 train_samples_path = os.path.join(output_folder, 'sampt')
 val_samples_path = os.path.join(output_folder, 'sampv')
 output_path = os.path.join(output_folder, 'output.json')
@@ -56,12 +56,12 @@ ch = 2  # represent two gray scaled images for homography calculation
 
 def generate_samples(tipe):
     #print('1')
-    image_folder = 'train'
+    image_folder = 'homo/train'
     samples_path = os.path.join(output_folder, 'sampt')
     max_data_size =150000
 
     if tipe == 'val':
-        image_folder = 'validation'
+        image_folder = 'homo/validation'
         samples_path = os.path.join(output_folder, 'sampv')
         max_data_size = int(max_data_size * .2)
 
@@ -134,10 +134,10 @@ def generate_samples(tipe):
 
 def get_data(samples, tipe):
     #random_list = []
-    image_folder = 'train'
+    image_folder = 'homo/train'
 
     if tipe == 'val':
-        image_folder = 'validation'
+        image_folder = 'homo/validation'
 
     X = []
     Y = []
