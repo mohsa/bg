@@ -31,15 +31,13 @@ validation_start = int(max_data_size * .9)
 image_shape = (patch_height, patch_width)
 
 max_dis_x = 6
-max_dis_y = 12
+max_dis_y = 17
 
 batch_size = 16
 nb_epoch = 50
 
 learning_rate = .0001
 training_dropout = 1.0
-
-num_outliers = 4
 
 c = 16  # number of filters. In original work
 ch = 1  # represent two gray scaled images for homography calculation
@@ -192,8 +190,10 @@ def get_data(samples, tipe):
 
         h_4pt = np.array([y_1_offset, x_1_offset, y_2_offset, x_2_offset, y_3_offset, x_3_offset, y_4_offset,
                           x_4_offset])  # .astype(np.int)
+        
         im2d = np.zeros((patch_height, patch_width, 1), np.uint8)
         im2dd = np.zeros((patch_height, patch_width, 1), np.uint8)
+        
         im2d[:, :, 0] = img_patch
         im2dd[:, :, 0] = img_perburb_patch
         X.append(im2d)
@@ -201,15 +201,21 @@ def get_data(samples, tipe):
 
         Y.append(h_4pt)
         coordinates.append(coord)
-        p1.append(img_patch)
-        p2.append(img_patch)
+#         p1.append(img_patch)
+#         p2.append(img_patch)
 
     X = np.array(X, np.float32)
     X2 = np.array(X2, np.float32)
     Y = np.array(Y, np.float32)
+    
     coordinates = np.array(coordinates, np.float32)
+    
+    X -= np.mean(X)
+    X /= np.std(X)
 
-    X /= 255
+    X2 -= np.mean(X2)
+    X2 /= np.std(X2)
+    
 
     return X,X2, Y, coordinates
 
@@ -239,8 +245,6 @@ class DeepHomographyModel():
             self.train_step = tf.train.AdamOptimizer(learning_rate).minimize(self.loss)
 
     def dnet(self, x):
-
-
         conv1 = tf.contrib.layers.conv2d(x, self.f, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv1')
         conv2 = tf.contrib.layers.conv2d(conv1, self.f, self.kernel_size, activation_fn=tf.nn.relu, scope='Conv2')
         pool1 = tf.contrib.layers.max_pool2d(conv2, kernel_size=[2, 2], stride=[2, 2], scope='Pool1')
@@ -262,14 +266,13 @@ class DeepHomographyModel():
     def los(self):
         con = tf.concat([self.o1, self.o2], 1)
         fc2 = tf.contrib.layers.fully_connected(con, 256, activation_fn=tf.nn.relu, scope='FC2')
-        fc3 = tf.contrib.layers.fully_connected(fc2, 256, activation_fn=tf.nn.relu, scope='FC3')
-        # do2 = tf.nn.dropout(fc2, self.keep_prob)
-
-        # print(do2.shape)
+#         fc3 = tf.contrib.layers.fully_connected(fc2, 256, activation_fn=tf.nn.relu, scope='FC3')
+        do2 = tf.nn.dropout(fc2, self.keep_prob)
+        
 
         with tf.name_scope('Output'):
-            y_conv = tf.contrib.layers.fully_connected(fc3, 8, activation_fn=None)
-            # y_conv = tf.multiply(y_conv, 50, name='pred')
+            y_conv = tf.contrib.layers.fully_connected(do2, 8, activation_fn=None)
+            y_conv = tf.multiply(y_conv, 50, name='pred')
 
         self.mse = tf.losses.mean_squared_error(y_conv, self.y_, scope='MSE')
         tf.summary.scalar('Mean squared error', self.mse)
@@ -279,11 +282,6 @@ class DeepHomographyModel():
         loss = tf.losses.absolute_difference(y_conv, self.y_, scope='Loss')
 
         return loss
-
-
-
-
-
 
 
 ###########################################################################################################3
