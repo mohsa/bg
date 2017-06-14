@@ -5,4 +5,4 @@ nvidia-docker run --rm \
 --net=host \
 -w /home/ubuntu/bg \
 dl:1.1 \
-python3 -m homo.deep_homo_tfss
+python3 -m homo.deep_homo_tf_dual
